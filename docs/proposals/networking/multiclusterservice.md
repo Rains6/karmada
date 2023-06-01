@@ -1,75 +1,41 @@
 ---
-title: Your short, descriptive title
+title: Support multi-cluster services with LB
 authors:
-- "@robot" # Authors' github accounts here.
+- "@XiShanYongYe-Chang"
+- "@GitHubxsy"
+- "@Rains6"
 reviewers:
-- "@robot"
 - TBD
 approvers:
-- "@robot"
 - TBD
 
-creation-date: yyyy-mm-dd
+creation-date: 2023-06-01
 
 ---
 
-# Your short, descriptive title
-
-<!--
-This is the title of your KEP. Keep it short, simple, and descriptive. A good
-title can help communicate what the KEP is and should be considered as part of
-any review.
--->
+# Support multi-cluster services with LB
 
 ## Summary
 
-<!--
-This section is incredibly important for producing high-quality, user-focused
-documentation such as release notes or a development roadmap. 
-
-A good summary is probably at least a paragraph in length.
--->
+我们已经基于 Kubernetes 社区 [sig-multicluster](https://github.com/kubernetes/community/tree/master/sig-multicluster) 提出的 [mcs-api](https://github.com/kubernetes-sigs/mcs-api)，实现了 MCS 功能，解决了多集群间服务发现的问题。但是 MCS 并未解决多集群维度服务暴露的问题。当前提案提出了一个新的 MultiClusterService（简称 MCS） API，用于在 OSI 四层上暴露多集群服务。MCS 将外部流量转发到 Karmada 管理的成员集群 Service 后端上，突破了单集群 Service 的边界限制，实现多集群流量统一入口。
 
 ## Motivation
 
-<!--
-This section is for explicitly listing the motivation, goals, and non-goals of
-this KEP.  Describe why the change is important and the benefits to users.
--->
+使用户可以像使用单集群 Service 一样使用 MCS，从而轻松地管理多个 Kubernetes 集群中的服务和应用程序，帮助用户快速简洁实现在多个 Kubernetes 集群之间进行负载均衡和四层网络流量路由。
 
 ### Goals
 
-<!--
-List the specific goals of the KEP. What is it trying to achieve? How will we
-know that this has succeeded?
--->
+- 定义 MCS API 来支持多集群服务的暴露。
+- 整合之前基于 mcs-api 实现的多集群服务发现原子能力，通过 MCS API 为用户提供更抽象、更简单的资源定义。
+- 在 [multicluster-cloud-provider](https://github.com/karmada-io/multicluster-cloud-provider) 仓库中提供 MCS 对接 LoadBalancer 的公共接口以及相关的控制器实现，供云提供商 LB 对接实现中 import。
 
 ### Non-Goals
 
-<!--
-What is out of scope for this KEP? Listing non-goals helps to focus discussion
-and make progress.
--->
+特定云提供商对于 LB 对接的实现。
 
 ## Proposal
 
-<!--
-This is where we get down to the specifics of what the proposal actually is.
-This should have enough detail that reviewers can understand exactly what
-you're proposing, but should not include things like API designs or
-implementation. What is the desired outcome and how do we measure success?.
-The "Design Details" section below is for the real
-nitty-gritty.
--->
-
 ### User Stories (Optional)
-
-<!--
-Detail the things that people will be able to do if this KEP is implemented.
-Include as much detail as possible so that people can understand the "how" of
-the system. The goal here is to make this feel real for users without getting
-bogged down.
--->
 
 #### Story 1
 
@@ -77,24 +43,7 @@ bogged down.
 
 ### Notes/Constraints/Caveats (Optional)
 
-<!--
-What are the caveats to the proposal?
-What are some important details that didn't come across above?
-Go in to as much detail as necessary here.
-This might be a good place to talk about core concepts and how they relate.
--->
-
 ### Risks and Mitigations
-
-<!--
-What are the risks of this proposal, and how do we mitigate? 
-
-How will security be reviewed, and by whom?
-
-How will UX be reviewed, and by whom?
-
-Consider including folks who also work outside the SIG or subproject.
--->
 
 ## Design Details
 
