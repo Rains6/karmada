@@ -47,12 +47,62 @@ creation-date: 2023-06-01
 
 ## Design Details
 
-<!--
-This section should contain enough information that the specifics of your
-change are understandable. This may include API specs (though not always
-required) or even code snippets. If there's any ambiguity about HOW your
-proposal will be implemented, this is the place to discuss them.
--->
+### 用户视角图：
+
+1、创建 Deployment、Service 并分发至成员集群
+2、创建 multiClusterService 对象
+3、multicluster-cloud-provider-xxx 将 pod ip 注册到 LB 实例
+
+![image](https://github.com/XiShanYongYe-Chang/karmada/assets/78244870/2a458457-2399-4293-bd06-7d4630ff93b8)
+
+```go
+type MultiClusterService struct {
+	metav1.TypeMeta   `json:",inline"`
+	metav1.ObjectMeta `json:"metadata,omitempty"`
+
+	// Spec is the desired state of the MultiClusterService.
+	// +optional
+	Spec ServiceSpec `json:"spec,omitempty"`
+
+	// Status is the current state of the MultiClusterService.
+	// +optional
+	Status corev1.ServiceStatus `json:"status,omitempty"`
+}
+
+type ServiceSpec struct {
+	// Backend 设置保留的后端，对于 LoadBalance ServiceType 生效
+	Backend ServiceBackend `json:"backend"`
+
+	// Types 指定 MCS 类型，可以指定多个类型，不能指定为空
+	Types []ServiceType `json:"types"`
+}
+
+type ServiceBackend struct {
+	// Port 指定暴露的业务端口
+	Port string `json:"port"`
+}
+
+type ServiceType string
+
+const (
+	// LoadBalance 将指定 Service 对外暴露，将后端 IP 注册到 LB 上
+	LoadBalance ServiceType = "LoadBalance"
+	// ClusterIP 利用 mcs-api 进行多集群间服务发现，会自动创建ServiceExport、ServiceImport并分发至所有成员集群
+	ClusterIP ServiceType = "ClusterIP"
+)
+```
+
+### MultiClusterService 与 Service 的对应关系如何？
+
+MultiClusterService 与 Service 的 name 字段保持一致，其应该视为与 Service 为同一个 Service，只不是一种多集群表现形态。在多集群服务暴露与多集群服务发现的过程中，会将对MultiClusterService的处理转化为 karmada 控制面上同名 Service 的处理。
+
+### 多集群间如何进行域名访问？
+
+域名解析保持一致：svcname.ns.svc.cluster.local
+
+### ClusterIP 类型的 MultiClusterService controller实现逻辑放在何处？
+
+ClusterIP 类型的 MultiClusterService controller实现逻辑放在 karmada-controller-manager 中。
 
 ### Test Plan
 
